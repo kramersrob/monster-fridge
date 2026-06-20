@@ -52,6 +52,16 @@ body {
   to   { transform: perspective(500px) rotateY(-30deg); }
 }
 
+@keyframes fridgeClose {
+  from { transform: perspective(800px) rotateY(0deg) scale(1);   opacity: 1; }
+  to   { transform: perspective(800px) rotateY(20deg) scale(0.97); opacity: 0; }
+}
+
+.fridge-closing {
+  animation: fridgeClose 0.45s ease-in forwards;
+  pointer-events: none;
+}
+
 @keyframes mistRise {
   0%   { opacity: 0; transform: translateY(0) scale(0.7); }
   50%  { opacity: 0.5; }

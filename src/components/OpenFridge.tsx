@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
@@ -23,9 +23,15 @@ type Props = {
 
 export default function OpenFridge({ onCanClick }: Props) {
   const [tab, setTab] = useState<Tab>('fridge');
-  const { shelves, canOrder, setCanOrder } = useStore();
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const { shelves, canOrder, setCanOrder, closeFridge } = useStore();
+  const [particles,  setParticles]  = useState<Particle[]>([]);
+  const [isClosing,  setIsClosing]  = useState(false);
   const nextId = useRef(0);
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => closeFridge(), 440);
+  }, [closeFridge]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -79,7 +85,7 @@ export default function OpenFridge({ onCanClick }: Props) {
   });
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#050505', display: 'flex', flexDirection: 'column' }}>
+    <div className={isClosing ? 'fridge-closing' : undefined} style={{ width: '100%', minHeight: '100vh', background: '#050505', display: 'flex', flexDirection: 'column' }}>
 
       {/* Nav */}
       <div style={{
@@ -101,6 +107,29 @@ export default function OpenFridge({ onCanClick }: Props) {
         </div>
         <button style={tabStyle(tab === 'fridge')} onClick={() => setTab('fridge')}>KOELKAST</button>
         <button style={tabStyle(tab === 'log')}    onClick={() => setTab('log')}>MIJN LOG</button>
+
+        {/* Sluit knop rechts */}
+        <button
+          onClick={handleClose}
+          style={{
+            marginLeft: 'auto',
+            background: 'none',
+            border: '1px solid #2a2a2a',
+            color: '#555',
+            fontFamily: 'Orbitron, sans-serif',
+            fontSize: 8,
+            letterSpacing: 2,
+            padding: '6px 10px',
+            borderRadius: 5,
+            cursor: 'pointer',
+            transition: 'color 0.2s, border-color 0.2s',
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => { (e.currentTarget.style.color = '#39FF14'); (e.currentTarget.style.borderColor = '#39FF14'); }}
+          onMouseLeave={e => { (e.currentTarget.style.color = '#555'); (e.currentTarget.style.borderColor = '#2a2a2a'); }}
+        >
+          ✕ SLUIT
+        </button>
       </div>
 
       {tab === 'log' && <LogView />}

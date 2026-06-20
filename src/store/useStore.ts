@@ -24,6 +24,7 @@ type State = {
   fridgeOpen: boolean;
   log: LogEntry[];
   openFridge: () => void;
+  closeFridge: () => void;
   setShelves: (s: Shelf[]) => void;
   setCanOrder: (shelfId: string, ids: string[]) => void;
   addLog: (entry: LogEntry) => void;
@@ -39,6 +40,7 @@ export const useStore = create<State>()(
       log:        [],
 
       openFridge:  () => set({ fridgeOpen: true }),
+      closeFridge: () => set({ fridgeOpen: false }),
       setShelves:  (shelves) => set({ shelves }),
       setCanOrder: (shelfId, ids) =>
         set((s) => ({ canOrder: { ...s.canOrder, [shelfId]: ids } })),
