@@ -1,36 +1,40 @@
+import { useId } from 'react';
+
 type Props = {
-  value: number;      // 0–10, steps of 0.5
+  value: number;      // 0–10, stappen van 0.5
   onChange: (v: number) => void;
   readonly?: boolean;
 };
 
-export default function StarRating({ value, onChange, readonly = false }: Props) {
-  const stars = [1, 2, 3, 4, 5]; // each star = 2 points (0–10 scale)
+const STAR_POINTS = '12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26';
 
-  function getStarFill(starIdx: number): 'full' | 'half' | 'empty' {
-    const starVal = starIdx * 2;
-    if (value >= starVal)       return 'full';
-    if (value >= starVal - 1)   return 'half';
+export default function StarRating({ value, onChange, readonly = false }: Props) {
+  const uid  = useId().replace(/:/g, '');
+  const size = readonly ? 11 : 20;
+  const gap  = readonly ? 2  : 4;
+
+  function getFill(i: number): 'full' | 'half' | 'empty' {
+    if (value >= i)       return 'full';
+    if (value >= i - 0.5) return 'half';
     return 'empty';
   }
 
-  function handleClick(starIdx: number, half: boolean) {
+  function handleClick(i: number, isLeft: boolean) {
     if (readonly) return;
-    const newVal = half ? starIdx * 2 - 1 : starIdx * 2;
-    onChange(newVal);
+    onChange(isLeft ? i - 0.5 : i);
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-      {stars.map((s) => {
-        const fill = getStarFill(s);
-        const gradId = `star-grad-${s}-${Math.random().toString(36).slice(2,5)}`;
+    <div style={{ display: 'flex', alignItems: 'center', gap, userSelect: 'none', flexWrap: 'nowrap' }}>
+      {Array.from({ length: 10 }, (_, idx) => idx + 1).map(i => {
+        const fill   = getFill(i);
+        const gradId = `sg-${uid}-${i}`;
 
         return (
           <svg
-            key={s}
-            width={readonly ? 14 : 24}
-            height={readonly ? 14 : 24}
+            key={i}
+            width={size}
+            height={size}
             viewBox="0 0 24 24"
             style={{ cursor: readonly ? 'default' : 'pointer', flexShrink: 0 }}
           >
@@ -41,51 +45,43 @@ export default function StarRating({ value, onChange, readonly = false }: Props)
               </linearGradient>
             </defs>
 
-            {/* Empty star background */}
+            {/* Grey background star */}
             <polygon
-              points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+              points={STAR_POINTS}
               fill="rgba(255,255,255,0.12)"
-              stroke="rgba(255,255,255,0.15)"
+              stroke="rgba(255,255,255,0.1)"
               strokeWidth="0.5"
             />
 
-            {/* Filled star */}
+            {/* Filled / half star */}
             {fill !== 'empty' && (
               <polygon
-                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                points={STAR_POINTS}
                 fill={fill === 'full' ? '#FFD700' : `url(#${gradId})`}
-                stroke="rgba(255,215,0,0.3)"
+                stroke="rgba(255,215,0,0.25)"
                 strokeWidth="0.5"
               />
             )}
 
-            {/* Left half click area */}
+            {/* Click zones (left = X.5, right = X.0) */}
             {!readonly && (
-              <rect
-                x="0" y="0" width="12" height="24"
-                fill="transparent"
-                onClick={() => handleClick(s, true)}
-              />
-            )}
-            {/* Right half click area */}
-            {!readonly && (
-              <rect
-                x="12" y="0" width="12" height="24"
-                fill="transparent"
-                onClick={() => handleClick(s, false)}
-              />
+              <>
+                <rect x="0"  y="0" width="12" height="24" fill="transparent" onClick={() => handleClick(i, true)}  />
+                <rect x="12" y="0" width="12" height="24" fill="transparent" onClick={() => handleClick(i, false)} />
+              </>
             )}
           </svg>
         );
       })}
 
-      {/* Numeric value */}
+      {/* Numerieke waarde */}
       <span style={{
         fontFamily: 'Orbitron, sans-serif',
-        fontSize: readonly ? 10 : 14,
-        color: '#FFD700',
+        fontSize: readonly ? 9 : 13,
+        color: value > 0 ? '#FFD700' : '#444',
         fontWeight: 700,
-        minWidth: readonly ? 24 : 32,
+        minWidth: readonly ? 22 : 30,
+        marginLeft: 2,
       }}>
         {value > 0 ? value.toFixed(1) : '—'}
       </span>
