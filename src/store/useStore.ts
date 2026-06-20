@@ -47,6 +47,9 @@ export const useStore = create<State>()(
       addLog:  (entry) => set((s) => ({ log: [entry, ...s.log] })),
       deleteLog: (id)  => set((s) => ({ log: s.log.filter(e => e.id !== id) })),
     }),
-    { name: 'monster-fridge-storage' }
+    {
+      name: 'monster-fridge-storage',
+      partialize: (s) => ({ shelves: s.shelves, canOrder: s.canOrder, log: s.log }),
+    }
   )
 );
