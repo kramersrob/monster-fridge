@@ -56,13 +56,13 @@ export default function App() {
       .select('*')
       .eq('id', user.id)
       .single()
-      .then(({ data }) => setProfile(data as Profile | null));
+      .then(({ data }: { data: unknown }) => setProfile(data as Profile | null));
   }, [user]);
 
   // Fetch all profiles for CompareView
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('*').then(({ data }) => {
+    supabase.from('profiles').select('*').then(({ data }: { data: unknown }) => {
       if (data) setProfiles(data as Profile[]);
     });
   }, [user, profile]); // re-fetch when our own profile changes (just set up)
@@ -86,7 +86,7 @@ export default function App() {
       .select('*')
       .eq('id', user.id)
       .single()
-      .then(({ data }) => setProfile(data as Profile));
+      .then(({ data }: { data: unknown }) => setProfile(data as Profile));
   }, [user]);
 
   // ── Auth gates ────────────────────────────────────────────────────────────
