@@ -10,6 +10,7 @@ export type LogEntry = {
   flavor: string;
   cat: string;
   ratingVal: number;
+  quantity: number;   // 1–5 blikjes per log entry
   note: string;
   date: string;
   c1: string;

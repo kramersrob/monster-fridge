@@ -11,10 +11,11 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { MONSTER_MAP } from '../data/monsters';
 import type { Monster } from '../data/monsters';
 import { useStore } from '../store/useStore';
-import ShelfRow from './ShelfRow';
-import LogView  from './LogView';
+import ShelfRow  from './ShelfRow';
+import LogView   from './LogView';
+import StatsView from './StatsView';
 
-type Tab = 'fridge' | 'log';
+type Tab = 'fridge' | 'log' | 'stats';
 type Particle = { id: number; x: number };
 
 type Props = {
@@ -107,6 +108,7 @@ export default function OpenFridge({ onCanClick }: Props) {
         </div>
         <button style={tabStyle(tab === 'fridge')} onClick={() => setTab('fridge')}>KOELKAST</button>
         <button style={tabStyle(tab === 'log')}    onClick={() => setTab('log')}>MIJN LOG</button>
+        <button style={tabStyle(tab === 'stats')}  onClick={() => setTab('stats')}>STATS</button>
 
         {/* Sluit knop rechts */}
         <button
@@ -132,7 +134,8 @@ export default function OpenFridge({ onCanClick }: Props) {
         </button>
       </div>
 
-      {tab === 'log' && <LogView />}
+      {tab === 'log'   && <LogView />}
+      {tab === 'stats' && <StatsView />}
 
       {tab === 'fridge' && (
         <div style={{

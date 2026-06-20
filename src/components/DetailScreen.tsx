@@ -15,11 +15,13 @@ export default function DetailScreen({ monster, onBack, onToast }: Props) {
   const addLog = useStore(s => s.addLog);
   const log    = useStore(s => s.log);
 
-  const [rating, setRating] = useState(0);
-  const [note,   setNote]   = useState('');
-  const [saving, setSaving] = useState(false);
+  const [rating,   setRating]   = useState(0);
+  const [note,     setNote]     = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [saving,   setSaving]   = useState(false);
 
-  const drinkCount = log.filter(e => e.monsterId === monster.id).length;
+  const drinkCount = log.filter(e => e.monsterId === monster.id)
+                        .reduce((s, e) => s + (e.quantity ?? 1), 0);
 
   function handleLog() {
     if (rating === 0) { onToast('Geef eerst een rating!'); return; }
@@ -31,6 +33,7 @@ export default function DetailScreen({ monster, onBack, onToast }: Props) {
       flavor:    monster.flavor,
       cat:       monster.cat,
       ratingVal: rating,
+      quantity,
       note:      note.trim(),
       date:      new Date().toISOString(),
       c1:        monster.c1,
@@ -136,6 +139,37 @@ export default function DetailScreen({ monster, onBack, onToast }: Props) {
           JOUW RATING (0–10)
         </label>
         <StarRating value={rating} onChange={setRating} />
+      </div>
+
+      {/* Aantal blikjes */}
+      <div style={{ width: '100%', marginBottom: 20 }}>
+        <label style={{
+          fontFamily: 'Orbitron, sans-serif', fontSize: 9,
+          color: '#555', letterSpacing: 3, display: 'block', marginBottom: 10,
+        }}>
+          AANTAL BLIKJES
+        </label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[1, 2, 3, 4, 5].map(n => (
+            <button
+              key={n}
+              onClick={() => setQuantity(n)}
+              style={{
+                width: 40, height: 40,
+                background: quantity === n ? 'rgba(57,255,20,0.15)' : '#0f0f0f',
+                border: `1.5px solid ${quantity === n ? '#39FF14' : '#2a2a2a'}`,
+                borderRadius: 8,
+                color: quantity === n ? '#39FF14' : '#555',
+                fontFamily: 'Orbitron, sans-serif',
+                fontSize: 14, fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ width: '100%', marginBottom: 24 }}>
