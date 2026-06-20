@@ -6,39 +6,49 @@ type Props = {
   height?: number;
 };
 
-export default function CanSVG({ monster, width = 56, height = 76 }: Props) {
-  const { c1, c2, str, lbl, id, name } = monster;
+export default function CanSVG({ monster, width = 90, height = 130 }: Props) {
+  const { c1, c2, name, id } = monster;
 
-  const gId   = `grad-${id}`;
-  const bgId  = `bg-${id}`;
-  const hlId  = `hl-${id}`;
+  const uid      = id.replace(/[^a-z0-9]/gi, '');
+  const gId      = `g-${uid}`;
+  const clipId   = `c-${uid}`;
 
-  const rx = width * 0.14;
-  const topEllipseH  = height * 0.06;
-  const botEllipseH  = height * 0.05;
-  const bodyTop      = topEllipseH * 0.6;
-  const bodyH        = height - bodyTop - botEllipseH * 0.6;
+  // Cylinder dimensions
+  const rx       = width * 0.13;
+  const ellH     = height * 0.06;
+  const bodyTop  = ellH * 0.55;
+  const bodyBot  = height - ellH * 0.55;
+  const bodyH    = bodyBot - bodyTop;
 
-  // Label band: middle 40% of body
-  const bandTop = bodyTop + bodyH * 0.22;
-  const bandH   = bodyH * 0.5;
+  // Label band: bottom 35% of body
+  const labelH   = bodyH * 0.35;
+  const labelTop = bodyBot - labelH;
 
-  // M sizing
-  const mSize     = Math.round(height * 0.38);
-  const suffixSize = Math.round(height * 0.17);
-  const mY        = bandTop + bandH * 0.69;
-  const mX        = width * 0.5;
+  // Three diagonal stripe ("M claw") geometry
+  const stripeArea_top = bodyTop + 6;
+  const stripeArea_bot = labelTop - 3;
+  const stripeH    = stripeArea_bot - stripeArea_top;
+  const sw         = width * 0.07;   // stripe half-width
+  const slant      = stripeH * 0.14; // lean at top vs bottom
 
-  // Watermark MONSTER behind M
-  const wmSize = Math.round(height * 0.23);
-  const wmY    = bandTop + bandH * 0.68;
+  function stripePoints(cx: number): string {
+    const tl = `${(cx - sw + slant).toFixed(1)},${stripeArea_top.toFixed(1)}`;
+    const tr = `${(cx + sw + slant).toFixed(1)},${stripeArea_top.toFixed(1)}`;
+    const br = `${(cx + sw - slant).toFixed(1)},${stripeArea_bot.toFixed(1)}`;
+    const bl = `${(cx - sw - slant).toFixed(1)},${stripeArea_bot.toFixed(1)}`;
+    return `${tl} ${tr} ${br} ${bl}`;
+  }
 
-  // Name line
-  const nameSize = Math.max(7, Math.round(height * 0.095));
-  const nameY    = mY + mSize * 0.08;
+  const s1 = width * 0.24;
+  const s2 = width * 0.50;
+  const s3 = width * 0.76;
 
-  // Short display name (truncate if too long)
-  const displayName = name.length > 14 ? name.slice(0, 13) + '…' : name;
+  // Label text: dynamic font size based on name length
+  const labelMid = labelTop + labelH * 0.62;
+  const maxW     = width - 10;
+  const fontSize = name.length <= 7  ? Math.min(18, labelH * 0.46)
+                 : name.length <= 11 ? Math.min(14, labelH * 0.38)
+                 :                     Math.min(11, labelH * 0.30);
 
   return (
     <svg
@@ -49,120 +59,95 @@ export default function CanSVG({ monster, width = 56, height = 76 }: Props) {
       style={{ display: 'block', flexShrink: 0 }}
     >
       <defs>
-        {/* Main gradient: c1 → c2 → c1 */}
+        {/* Body gradient: c1 left → c2 right (gives 3D cylinder look) */}
         <linearGradient id={gId} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor={c1} />
-          <stop offset="50%"  stopColor={c2} />
+          <stop offset="55%"  stopColor={c2} />
           <stop offset="100%" stopColor={c1} />
         </linearGradient>
 
-        {/* Dark band gradient */}
-        <linearGradient id={bgId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="rgba(0,0,0,0.55)" />
-          <stop offset="40%"  stopColor="rgba(0,0,0,0.35)" />
-          <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
-        </linearGradient>
-
-        {/* Highlight gradient (3D effect) */}
-        <linearGradient id={hlId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="rgba(255,255,255,0.18)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </linearGradient>
-
-        <clipPath id={`clip-${id}`}>
-          <rect x="0" y={bodyTop} width={width} height={bodyH} rx={rx} />
+        {/* Clip to rounded-rect body shape */}
+        <clipPath id={clipId}>
+          <rect x="1" y={bodyTop} width={width - 2} height={bodyH} rx={rx} />
         </clipPath>
       </defs>
 
       {/* ── Can body ── */}
       <rect
-        x="0" y={bodyTop}
-        width={width} height={bodyH}
+        x="1" y={bodyTop}
+        width={width - 2} height={bodyH}
         rx={rx}
         fill={`url(#${gId})`}
       />
 
-      {/* Dark label band */}
+      {/* ── Three diagonal M-stripes (clipped to body) ── */}
+      <g clipPath={`url(#${clipId})`}>
+        {[s1, s2, s3].map((cx, i) => (
+          <polygon
+            key={i}
+            points={stripePoints(cx)}
+            fill={c2}
+            stroke="rgba(0,0,0,0.25)"
+            strokeWidth="0.5"
+            opacity="0.82"
+          />
+        ))}
+      </g>
+
+      {/* ── Black label band ── */}
       <rect
-        x="0" y={bandTop}
-        width={width} height={bandH}
-        fill={`url(#${bgId})`}
-        clipPath={`url(#clip-${id})`}
+        x="1" y={labelTop}
+        width={width - 2} height={labelH + ellH}
+        fill="#000"
+        clipPath={`url(#${clipId})`}
       />
 
-      {/* Watermark MONSTER */}
+      {/* Subtle separator line between stripes and label */}
+      <line
+        x1="4" y1={labelTop}
+        x2={width - 4} y2={labelTop}
+        stroke={c2}
+        strokeWidth="1"
+        clipPath={`url(#${clipId})`}
+        opacity="0.6"
+      />
+
+      {/* ── Name in label ── */}
       <text
-        x={mX} y={wmY}
+        x={width / 2}
+        y={labelMid}
         textAnchor="middle"
-        dominantBaseline="alphabetic"
+        dominantBaseline="middle"
         fontFamily="'Bebas Neue', sans-serif"
-        fontSize={wmSize}
-        fill={str}
-        opacity={0.28}
+        fontSize={fontSize}
+        fill="white"
         letterSpacing="1"
+        clipPath={`url(#${clipId})`}
+        style={{ userSelect: 'none' }}
       >
-        MONSTER
+        <tspan textLength={name.length > 11 ? maxW : undefined} lengthAdjust="spacingAndGlyphs">
+          {name.toUpperCase()}
+        </tspan>
       </text>
 
-      {/* Big M + ONSTER as one word, two sizes */}
-      <text
-        x={mX} y={mY}
-        textAnchor="middle"
-        dominantBaseline="alphabetic"
-        fontFamily="'Bebas Neue', sans-serif"
-        fill={lbl}
-        letterSpacing="0.5"
-      >
-        <tspan fontSize={mSize} dy="0">M</tspan>
-        <tspan fontSize={suffixSize} dy={`${mSize - suffixSize}px`} dx="-1">ONSTER</tspan>
-      </text>
-
-      {/* Can name below M */}
-      <text
-        x={mX} y={nameY + nameSize * 1.1}
-        textAnchor="middle"
-        dominantBaseline="alphabetic"
-        fontFamily="'Bebas Neue', sans-serif"
-        fontSize={nameSize}
-        fill={lbl}
-        opacity={0.8}
-        letterSpacing="0.5"
-      >
-        {displayName}
-      </text>
-
-      {/* Highlight streak (left edge, 3D) */}
+      {/* ── Highlight (left edge 3D) ── */}
       <rect
-        x={0} y={bodyTop}
-        width={width * 0.12} height={bodyH}
+        x="1" y={bodyTop}
+        width={width * 0.11} height={bodyH}
         rx={rx}
-        fill={`url(#${hlId})`}
-        clipPath={`url(#clip-${id})`}
+        fill="rgba(255,255,255,0.10)"
+        clipPath={`url(#${clipId})`}
       />
 
-      {/* Top ellipse */}
-      <ellipse
-        cx={width / 2} cy={bodyTop}
-        rx={width / 2} ry={topEllipseH}
-        fill="#666"
-      />
-      <ellipse
-        cx={width / 2} cy={bodyTop}
-        rx={width / 2 - 2} ry={topEllipseH - 1}
-        fill="#888"
-      />
+      {/* ── Top ellipse (aluminum lid) ── */}
+      <ellipse cx={width / 2} cy={bodyTop} rx={(width - 2) / 2} ry={ellH}     fill="#555" />
+      <ellipse cx={width / 2} cy={bodyTop} rx={(width - 6) / 2} ry={ellH - 1} fill="#999" />
+      {/* Pull-tab hint */}
+      <ellipse cx={width / 2 + width * 0.12} cy={bodyTop} rx={width * 0.07} ry={ellH * 0.55} fill="#777" />
 
-      {/* Bottom ellipse */}
-      <ellipse
-        cx={width / 2} cy={bodyTop + bodyH}
-        rx={width / 2} ry={botEllipseH}
-        fill="#222"
-      />
-      <ellipse
-        cx={width / 2} cy={bodyTop + bodyH}
-        rx={width / 2 - 1} ry={botEllipseH - 1}
-        fill="#333"
-      />
+      {/* ── Bottom ellipse ── */}
+      <ellipse cx={width / 2} cy={bodyBot} rx={(width - 2) / 2} ry={ellH}     fill="#111" />
+      <ellipse cx={width / 2} cy={bodyBot} rx={(width - 4) / 2} ry={ellH - 1} fill="#222" />
     </svg>
   );
 }

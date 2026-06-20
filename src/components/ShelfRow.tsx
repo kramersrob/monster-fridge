@@ -46,7 +46,7 @@ function SortableCan({ monster, shelfId, drinkCount, onClick }: CanItemProps) {
 
         {drinkCount > 0 && (
           <div style={{
-            position: 'absolute', top: -6, right: -6,
+            position: 'absolute', top: -6, right: -2,
             background: '#39FF14', color: '#000',
             fontFamily: 'Orbitron, sans-serif', fontSize: 10, fontWeight: 700,
             width: 22, height: 22, borderRadius: '50%',
@@ -57,14 +57,14 @@ function SortableCan({ monster, shelfId, drinkCount, onClick }: CanItemProps) {
           </div>
         )}
 
-        <CanSVG monster={monster} width={100} height={140} />
+        <CanSVG monster={monster} width={90} height={130} />
 
         <div style={{
-          fontFamily: 'Bebas Neue, sans-serif', fontSize: 13, color: '#ddd',
-          marginTop: 6, textAlign: 'center', width: 100,
+          fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#fff',
+          marginTop: 6, textAlign: 'center', width: 90,
           lineHeight: 1.2, whiteSpace: 'nowrap',
           overflow: 'hidden', textOverflow: 'ellipsis',
-          letterSpacing: 0.5,
+          fontWeight: 500,
         }}>
           {monster.name}
         </div>
