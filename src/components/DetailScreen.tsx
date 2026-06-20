@@ -1,40 +1,44 @@
 import { useState } from 'react';
 import type { Monster } from '../data/monsters';
-import type { AddLogPayload, DbLogEntry } from '../lib/supabase';
+import { useStore } from '../store/useStore';
+import type { LogEntry } from '../store/useStore';
 import CanSVG from './CanSVG';
 import StarRating from './StarRating';
 
 type Props = {
   monster: Monster;
-  log: DbLogEntry[];
-  userId: string;
   onBack: () => void;
   onToast: (msg: string) => void;
-  addLog: (payload: AddLogPayload) => Promise<void>;
 };
 
-export default function DetailScreen({ monster, log, userId, onBack, onToast, addLog }: Props) {
-  const [rating,  setRating]  = useState(0);
-  const [note,    setNote]    = useState('');
-  const [saving,  setSaving]  = useState(false);
+export default function DetailScreen({ monster, onBack, onToast }: Props) {
+  const addLog = useStore(s => s.addLog);
+  const log    = useStore(s => s.log);
 
-  const drinkCount = log.filter(e => e.monster_id === monster.id && e.user_id === userId).length;
+  const [rating, setRating] = useState(0);
+  const [note,   setNote]   = useState('');
+  const [saving, setSaving] = useState(false);
 
-  async function handleLog() {
+  const drinkCount = log.filter(e => e.monsterId === monster.id).length;
+
+  function handleLog() {
     if (rating === 0) { onToast('Geef eerst een rating!'); return; }
     setSaving(true);
-    await addLog({
-      monster_id:     monster.id,
-      monster_name:   monster.name,
-      monster_flavor: monster.flavor,
-      monster_cat:    monster.cat,
-      rating_val:     rating,
-      note:           note.trim(),
-      c1:  monster.c1,
-      c2:  monster.c2,
-      lbl: monster.lbl,
-      str: monster.str,
-    });
+    const entry: LogEntry = {
+      id:        crypto.randomUUID(),
+      monsterId: monster.id,
+      name:      monster.name,
+      flavor:    monster.flavor,
+      cat:       monster.cat,
+      ratingVal: rating,
+      note:      note.trim(),
+      date:      new Date().toISOString(),
+      c1:        monster.c1,
+      c2:        monster.c2,
+      lbl:       monster.lbl,
+      str:       monster.str,
+    };
+    addLog(entry);
     onToast(`⚡ ${monster.name} gelogd!`);
     setTimeout(() => onBack(), 300);
     setSaving(false);
@@ -52,7 +56,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
       margin: '0 auto',
       width: '100%',
     }}>
-      {/* Back button */}
       <button
         onClick={onBack}
         style={{
@@ -75,12 +78,10 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         ← TERUG
       </button>
 
-      {/* Big can */}
       <div style={{ marginBottom: 20 }}>
         <CanSVG monster={monster} width={100} height={138} />
       </div>
 
-      {/* Name */}
       <h1 style={{
         fontFamily: 'Bebas Neue, sans-serif',
         fontSize: 34,
@@ -93,7 +94,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         {monster.name}
       </h1>
 
-      {/* Category + flavor */}
       <p style={{
         fontFamily: 'Orbitron, sans-serif',
         fontSize: 9,
@@ -106,7 +106,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         {monster.cat} · {monster.flavor}
       </p>
 
-      {/* Caffeine badge */}
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         background: 'rgba(57,255,20,0.1)',
@@ -125,7 +124,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         )}
       </div>
 
-      {/* Star rating */}
       <div style={{ width: '100%', marginBottom: 20 }}>
         <label style={{
           fontFamily: 'Orbitron, sans-serif',
@@ -140,7 +138,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         <StarRating value={rating} onChange={setRating} />
       </div>
 
-      {/* Note */}
       <div style={{ width: '100%', marginBottom: 24 }}>
         <label style={{
           fontFamily: 'Orbitron, sans-serif',
@@ -175,7 +172,6 @@ export default function DetailScreen({ monster, log, userId, onBack, onToast, ad
         />
       </div>
 
-      {/* Log button */}
       <button
         className="log-btn"
         onClick={handleLog}

@@ -1,13 +1,7 @@
+import { useStore } from '../store/useStore';
 import { MONSTER_MAP } from '../data/monsters';
-import type { DbLogEntry } from '../lib/supabase';
 import CanSVG from './CanSVG';
 import StarRating from './StarRating';
-
-type Props = {
-  log: DbLogEntry[];
-  userId: string;
-  onDelete?: (id: string) => void;
-};
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -42,14 +36,14 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-export default function LogView({ log, userId, onDelete }: Props) {
-  // Only show the current user's log entries here
-  const myLog = log.filter(e => e.user_id === userId);
+export default function LogView() {
+  const log       = useStore(s => s.log);
+  const deleteLog = useStore(s => s.deleteLog);
 
-  const total      = myLog.length;
-  const unique     = new Set(myLog.map(e => e.monster_id)).size;
-  const avgRating  = total > 0
-    ? (myLog.reduce((s, e) => s + e.rating_val, 0) / total).toFixed(1)
+  const total     = log.length;
+  const unique    = new Set(log.map(e => e.monsterId)).size;
+  const avgRating = total > 0
+    ? (log.reduce((s, e) => s + e.ratingVal, 0) / total).toFixed(1)
     : '—';
 
   if (total === 0) {
@@ -57,7 +51,7 @@ export default function LogView({ log, userId, onDelete }: Props) {
       <div style={{ textAlign: 'center', padding: '60px 20px', color: '#333' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🥤</div>
         <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 22, color: '#333', letterSpacing: 2 }}>
-          NOCH GEEN BLIKJES GELOGD
+          NOG GEEN BLIKJES GELOGD
         </div>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#2a2a2a', marginTop: 8 }}>
           Open de koelkast, kies een smaak en log hem!
@@ -68,25 +62,23 @@ export default function LogView({ log, userId, onDelete }: Props) {
 
   return (
     <div style={{ padding: '16px 12px 40px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
-      {/* Stats */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-        <StatCard label="Totaal gedronken" value={total}      />
-        <StatCard label="Unieke smaken"    value={unique}     />
-        <StatCard label="Gem. rating"       value={avgRating}  />
+        <StatCard label="Totaal gedronken" value={total}     />
+        <StatCard label="Unieke smaken"    value={unique}    />
+        <StatCard label="Gem. rating"      value={avgRating} />
       </div>
 
-      {/* Log list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {myLog.map(entry => {
-          const monster = MONSTER_MAP.get(entry.monster_id);
+        {log.map(entry => {
+          const monster = MONSTER_MAP.get(entry.monsterId);
           const displayMonster = monster ?? {
-            id: entry.monster_id, name: entry.monster_name,
-            flavor: entry.monster_flavor, caffeine: '',
+            id: entry.monsterId, name: entry.name,
+            flavor: entry.flavor, caffeine: '',
             cat: 'Special' as const,
             c1: entry.c1, c2: entry.c2, str: entry.str, lbl: entry.lbl,
           };
 
-          const date = new Date(entry.logged_at).toLocaleDateString('nl-NL', {
+          const date = new Date(entry.date).toLocaleDateString('nl-NL', {
             day: 'numeric', month: 'short', year: 'numeric',
           });
 
@@ -110,7 +102,7 @@ export default function LogView({ log, userId, onDelete }: Props) {
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 15, color: '#ddd', letterSpacing: 1 }}>
-                  {entry.monster_name}
+                  {entry.name}
                 </div>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#444', marginTop: 1 }}>
                   {date}
@@ -127,22 +119,20 @@ export default function LogView({ log, userId, onDelete }: Props) {
               </div>
 
               <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                <StarRating value={entry.rating_val} onChange={() => {}} readonly />
-                {onDelete && (
-                  <button
-                    onClick={() => onDelete(entry.id)}
-                    style={{
-                      background: 'none', border: 'none', color: '#2a2a2a',
-                      cursor: 'pointer', fontSize: 12, padding: '2px 4px',
-                      transition: 'color 0.2s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#2a2a2a')}
-                    title="Verwijder entry"
-                  >
-                    ✕
-                  </button>
-                )}
+                <StarRating value={entry.ratingVal} onChange={() => {}} readonly />
+                <button
+                  onClick={() => deleteLog(entry.id)}
+                  style={{
+                    background: 'none', border: 'none', color: '#2a2a2a',
+                    cursor: 'pointer', fontSize: 12, padding: '2px 4px',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#ff4444')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#2a2a2a')}
+                  title="Verwijder entry"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           );

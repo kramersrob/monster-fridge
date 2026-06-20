@@ -10,26 +10,18 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { MONSTER_MAP } from '../data/monsters';
 import type { Monster } from '../data/monsters';
-import type { DbLogEntry, Profile } from '../lib/supabase';
 import { useStore } from '../store/useStore';
-import ShelfRow    from './ShelfRow';
-import LogView     from './LogView';
-import CompareView from './CompareView';
+import ShelfRow from './ShelfRow';
+import LogView  from './LogView';
 
-type Tab = 'fridge' | 'log' | 'compare';
-
-type Props = {
-  log: DbLogEntry[];
-  userId: string;
-  profiles: Profile[];
-  onCanClick: (m: Monster) => void;
-  onDeleteLog: (id: string) => void;
-  onSignOut: () => void;
-};
-
+type Tab = 'fridge' | 'log';
 type Particle = { id: number; x: number };
 
-export default function OpenFridge({ log, userId, profiles, onCanClick, onDeleteLog, onSignOut }: Props) {
+type Props = {
+  onCanClick: (m: Monster) => void;
+};
+
+export default function OpenFridge({ onCanClick }: Props) {
   const [tab, setTab] = useState<Tab>('fridge');
   const { shelves, canOrder, setCanOrder } = useStore();
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -73,26 +65,23 @@ export default function OpenFridge({ log, userId, profiles, onCanClick, onDelete
     }
   }
 
-  const myName = profiles.find(p => p.id === userId)?.username ?? 'Account';
-
   const tabStyle = (active: boolean): React.CSSProperties => ({
     fontFamily: 'Orbitron, sans-serif',
     fontSize: 9,
     letterSpacing: 2,
-    padding: '10px 14px',
+    padding: '10px 18px',
     background: 'none',
     border: 'none',
     cursor: 'pointer',
     color: active ? '#39FF14' : '#444',
     borderBottom: active ? '2px solid #39FF14' : '2px solid transparent',
     transition: 'color 0.2s',
-    whiteSpace: 'nowrap',
   });
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', background: '#050505', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Navigation */}
+      {/* Nav */}
       <div style={{
         borderBottom: '1px solid #1a1a1a',
         display: 'flex',
@@ -102,54 +91,19 @@ export default function OpenFridge({ log, userId, profiles, onCanClick, onDelete
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        gap: 0,
       }}>
-        {/* Logo */}
         <div style={{
-          fontFamily: 'Bebas Neue, sans-serif',
-          fontSize: 15,
-          color: '#39FF14',
-          letterSpacing: 2,
-          marginRight: 8,
-          textShadow: '0 0 10px rgba(57,255,20,0.5)',
-          flexShrink: 0,
+          fontFamily: 'Bebas Neue, sans-serif', fontSize: 15,
+          color: '#39FF14', letterSpacing: 2, marginRight: 8,
+          textShadow: '0 0 10px rgba(57,255,20,0.5)', flexShrink: 0,
         }}>
           M
         </div>
-
-        <button style={tabStyle(tab === 'fridge')}  onClick={() => setTab('fridge')}>KOELKAST</button>
-        <button style={tabStyle(tab === 'log')}     onClick={() => setTab('log')}>MIJN LOG</button>
-        <button style={tabStyle(tab === 'compare')} onClick={() => setTab('compare')}>VERGELIJK</button>
-
-        {/* User + sign out */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontFamily: 'Orbitron', fontSize: 8, color: '#333', letterSpacing: 1 }}>
-            {myName}
-          </span>
-          <button
-            onClick={onSignOut}
-            style={{
-              background: 'none', border: '1px solid #222', color: '#333',
-              fontFamily: 'Orbitron', fontSize: 7, letterSpacing: 1,
-              padding: '5px 8px', borderRadius: 4, cursor: 'pointer',
-              transition: 'color 0.2s, border-color 0.2s',
-            }}
-            onMouseEnter={e => { (e.currentTarget.style.color = '#ff4444'); (e.currentTarget.style.borderColor = '#ff4444'); }}
-            onMouseLeave={e => { (e.currentTarget.style.color = '#333'); (e.currentTarget.style.borderColor = '#222'); }}
-          >
-            UIT
-          </button>
-        </div>
+        <button style={tabStyle(tab === 'fridge')} onClick={() => setTab('fridge')}>KOELKAST</button>
+        <button style={tabStyle(tab === 'log')}    onClick={() => setTab('log')}>MIJN LOG</button>
       </div>
 
-      {/* Content */}
-      {tab === 'log' && (
-        <LogView log={log} userId={userId} onDelete={onDeleteLog} />
-      )}
-
-      {tab === 'compare' && (
-        <CompareView log={log} userId={userId} profiles={profiles} />
-      )}
+      {tab === 'log' && <LogView />}
 
       {tab === 'fridge' && (
         <div style={{
@@ -172,15 +126,12 @@ export default function OpenFridge({ log, userId, profiles, onCanClick, onDelete
                   shelfId={shelf.id}
                   label={shelf.label}
                   monsters={monsters}
-                  log={log}
-                  userId={userId}
                   onCanClick={onCanClick}
                 />
               );
             })}
           </DndContext>
 
-          {/* Mist */}
           <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, height: 40, pointerEvents: 'none', overflow: 'hidden' }}>
             {particles.map(p => (
               <div key={p.id} className="mist-particle" style={{
