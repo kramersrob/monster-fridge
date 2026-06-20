@@ -46,26 +46,27 @@ function SortableCan({ monster, shelfId, drinkCount, onClick }: CanItemProps) {
 
         {drinkCount > 0 && (
           <div style={{
-            position: 'absolute', top: -4, right: -4,
+            position: 'absolute', top: -6, right: -6,
             background: '#39FF14', color: '#000',
-            fontFamily: 'Orbitron, sans-serif', fontSize: 8, fontWeight: 700,
-            width: 16, height: 16, borderRadius: '50%',
+            fontFamily: 'Orbitron, sans-serif', fontSize: 10, fontWeight: 700,
+            width: 22, height: 22, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 8px rgba(57,255,20,0.6)', zIndex: 10,
+            boxShadow: '0 0 10px rgba(57,255,20,0.7)', zIndex: 10,
           }}>
             {drinkCount > 9 ? '9+' : drinkCount}
           </div>
         )}
 
-        <CanSVG monster={monster} width={46} height={63} />
+        <CanSVG monster={monster} width={100} height={140} />
 
         <div style={{
-          fontFamily: 'Orbitron, sans-serif', fontSize: 6, color: '#555',
-          marginTop: 4, textAlign: 'center', maxWidth: 46,
+          fontFamily: 'Bebas Neue, sans-serif', fontSize: 13, color: '#ddd',
+          marginTop: 6, textAlign: 'center', width: 100,
           lineHeight: 1.2, whiteSpace: 'nowrap',
           overflow: 'hidden', textOverflow: 'ellipsis',
+          letterSpacing: 0.5,
         }}>
-          {monster.name.toUpperCase()}
+          {monster.name}
         </div>
       </div>
     </div>
@@ -107,7 +108,7 @@ export default function ShelfRow({ shelfId, label, monsters, onCanClick }: Shelf
       }}>
         <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
           <div
-            style={{ display: 'flex', gap: 8, minWidth: 'max-content' }}
+            style={{ display: 'flex', gap: 20, minWidth: 'max-content' }}
             onMouseOver={e => {
               (e.currentTarget as HTMLElement)
                 .querySelectorAll<HTMLElement>('.drag-handle')

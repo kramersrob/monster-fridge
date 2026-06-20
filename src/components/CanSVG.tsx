@@ -24,8 +24,8 @@ export default function CanSVG({ monster, width = 56, height = 76 }: Props) {
   const bandH   = bodyH * 0.5;
 
   // M sizing
-  const mSize     = Math.round(height * 0.34);
-  const suffixSize = Math.round(height * 0.155);
+  const mSize     = Math.round(height * 0.38);
+  const suffixSize = Math.round(height * 0.17);
   const mY        = bandTop + bandH * 0.69;
   const mX        = width * 0.5;
 
@@ -34,7 +34,7 @@ export default function CanSVG({ monster, width = 56, height = 76 }: Props) {
   const wmY    = bandTop + bandH * 0.68;
 
   // Name line
-  const nameSize = Math.max(5, Math.round(height * 0.085));
+  const nameSize = Math.max(7, Math.round(height * 0.095));
   const nameY    = mY + mSize * 0.08;
 
   // Short display name (truncate if too long)
