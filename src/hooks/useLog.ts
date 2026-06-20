@@ -7,6 +7,7 @@ export function useLog(userId: string | null) {
   const [loading, setLoading] = useState(true);
 
   const fetchLog = useCallback(async () => {
+    if (!userId) return;
     const { data, error } = await supabase
       .from('log_entries')
       .select('*')
@@ -14,12 +15,17 @@ export function useLog(userId: string | null) {
 
     if (!error && data) setLog(data as DbLogEntry[]);
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
+    if (!userId) {
+      setLog([]);
+      setLoading(false);
+      return;
+    }
+
     fetchLog();
 
-    // Realtime: als je partner iets logt zie je het meteen
     const channel = supabase
       .channel('log_changes')
       .on(
@@ -30,7 +36,7 @@ export function useLog(userId: string | null) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [fetchLog]);
+  }, [userId, fetchLog]);
 
   const addLog = useCallback(async (payload: AddLogPayload) => {
     if (!userId) return;
