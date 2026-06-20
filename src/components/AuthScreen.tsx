@@ -13,7 +13,7 @@ export function AuthScreen() {
     setError('');
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: 'https://monster-fridge.vercel.app' },
     });
     if (error) setError(error.message);
     else setSent(true);
