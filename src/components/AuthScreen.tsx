@@ -1,21 +1,37 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-export function AuthScreen() {
-  const [email,   setEmail]   = useState('');
-  const [sent,    setSent]    = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
+type Mode = 'login' | 'register';
 
-  async function handleLogin() {
-    if (!email.trim()) return;
+export function AuthScreen() {
+  const [mode,     setMode]     = useState<Mode>('login');
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+  const [success,  setSuccess]  = useState('');
+
+  async function handleSubmit() {
+    if (!email.trim() || !password) return;
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-    });
-    if (error) setError(error.message);
-    else setSent(true);
+    setSuccess('');
+
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) setError(error.message);
+    } else {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      });
+      if (error) setError(error.message);
+      else setSuccess('Account aangemaakt! Je kunt nu inloggen.');
+    }
+
     setLoading(false);
   }
 
@@ -30,75 +46,96 @@ export function AuthScreen() {
     padding: '14px 18px',
     outline: 'none',
     transition: 'border-color 0.2s',
-  } as const;
-
-  if (sent) {
-    return (
-      <div style={centeredPage}>
-        <MonsterLogo />
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
-        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: 28, color: '#39FF14', letterSpacing: 2, margin: '0 0 12px' }}>
-          CHECK JE EMAIL
-        </h2>
-        <p style={{ fontFamily: 'Orbitron', fontSize: 10, color: '#555', letterSpacing: 3, lineHeight: 2 }}>
-          WE HEBBEN EEN INLOGLINK GESTUURD NAAR<br />
-          <span style={{ color: '#39FF14' }}>{email}</span>
-        </p>
-        <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', marginTop: 20 }}>
-          Klik de link in je email om in te loggen.
-        </p>
-        <button
-          onClick={() => { setSent(false); setEmail(''); }}
-          style={{ marginTop: 28, background: 'none', border: '1px solid #222', color: '#444', fontFamily: 'Orbitron', fontSize: 9, letterSpacing: 2, padding: '8px 16px', borderRadius: 6, cursor: 'pointer' }}
-        >
-          ANDERE EMAIL PROBEREN
-        </button>
-      </div>
-    );
-  }
+    boxSizing: 'border-box' as const,
+  };
 
   return (
     <div style={centeredPage}>
       <MonsterLogo />
 
-      <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 18, color: '#333', letterSpacing: 6, marginBottom: 40 }}>
+      <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 18, color: '#333', letterSpacing: 6, marginBottom: 32 }}>
         UNLEASH THE BEAST
       </h1>
 
-      <div style={{ width: '100%', maxWidth: 340 }}>
-        <label style={{ fontFamily: 'Orbitron', fontSize: 9, color: '#555', letterSpacing: 3, display: 'block', marginBottom: 10 }}>
-          EMAIL ADRES
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleLogin()}
-          placeholder="jouw@email.nl"
-          style={inputStyle}
-          onFocus={e => (e.target.style.borderColor = 'rgba(57,255,20,0.5)')}
-          onBlur={e => (e.target.style.borderColor = '#2a2a2a')}
-          autoComplete="email"
-        />
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', marginBottom: 28, border: '1px solid #1f1f1f', borderRadius: 8, overflow: 'hidden' }}>
+        {(['login', 'register'] as Mode[]).map(m => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); setError(''); setSuccess(''); }}
+            style={{
+              flex: 1,
+              padding: '9px 20px',
+              background: mode === m ? 'rgba(57,255,20,0.12)' : 'transparent',
+              border: 'none',
+              color: mode === m ? '#39FF14' : '#444',
+              fontFamily: 'Orbitron, sans-serif',
+              fontSize: 9,
+              letterSpacing: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            {m === 'login' ? 'INLOGGEN' : 'REGISTREREN'}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 340, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <label style={{ fontFamily: 'Orbitron', fontSize: 9, color: '#555', letterSpacing: 3, display: 'block', marginBottom: 8 }}>
+            EMAIL
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            placeholder="jouw@email.nl"
+            style={inputStyle}
+            onFocus={e => (e.target.style.borderColor = 'rgba(57,255,20,0.5)')}
+            onBlur={e => (e.target.style.borderColor = '#2a2a2a')}
+            autoComplete="email"
+          />
+        </div>
+
+        <div>
+          <label style={{ fontFamily: 'Orbitron', fontSize: 9, color: '#555', letterSpacing: 3, display: 'block', marginBottom: 8 }}>
+            WACHTWOORD
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            placeholder="••••••••"
+            style={inputStyle}
+            onFocus={e => (e.target.style.borderColor = 'rgba(57,255,20,0.5)')}
+            onBlur={e => (e.target.style.borderColor = '#2a2a2a')}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          />
+        </div>
 
         {error && (
-          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#ff4444', marginTop: 8 }}>
+          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#ff4444', margin: 0 }}>
             {error}
+          </p>
+        )}
+
+        {success && (
+          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#39FF14', margin: 0 }}>
+            {success}
           </p>
         )}
 
         <button
           className="log-btn"
-          onClick={handleLogin}
-          disabled={loading || !email.trim()}
-          style={{ marginTop: 16, opacity: loading || !email.trim() ? 0.5 : 1 }}
+          onClick={handleSubmit}
+          disabled={loading || !email.trim() || !password}
+          style={{ marginTop: 4, opacity: loading || !email.trim() || !password ? 0.5 : 1 }}
         >
-          {loading ? 'BEZIG…' : '⚡ STUUR INLOGLINK'}
+          {loading ? 'BEZIG…' : mode === 'login' ? '⚡ INLOGGEN' : '⚡ ACCOUNT AANMAKEN'}
         </button>
-
-        <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#2a2a2a', textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
-          Geen wachtwoord nodig. Je ontvangt een magische inloglink per email.
-        </p>
       </div>
     </div>
   );
